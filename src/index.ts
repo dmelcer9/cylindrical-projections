@@ -14,6 +14,7 @@ import {
     AxesViewer,
     GizmoManager
 } from 'babylonjs'
+import {createTexture, setTextureOptions, TextureOptions} from "./shader";
 
 var canvas: any = document.getElementById("renderCanvas");
 var engine: Engine = new Engine(canvas, true);
@@ -58,21 +59,30 @@ function createScene(): Scene {
     }, scene);
     cylinder.hasVertexAlpha = true;
     const cyl_material = new StandardMaterial("CylinderMaterial", scene);
-    const cyl_texture = new CustomProceduralTexture("MapProjTexture", "globeProjection", 2048, scene);
-    cyl_texture.animate = true;
-    cyl_texture.refreshRate = 1;
+
+    function getTextureOptions(): TextureOptions{
+        return {
+            sphere_position: sphere.position,
+            sphere_rotation: sphere.rotation,
+            projection_origin: Vector3.Zero(),
+            cylinder_height: cylinder_height,
+            cylinder_radius: cylinder_radius
+        };
+    }
+
+    const cyl_texture = createTexture(getTextureOptions(), map_texture, scene);
+    // cyl_texture.animate = true;
+    // cyl_texture.refreshRate = 1;
     // cyl_texture.f
     // cyl_material.wireframe = true;
     cylinder.material = cyl_material;
     cyl_material.emissiveTexture = cyl_texture;
     cyl_material.alpha = 0.5;
 
-    const axesviewer = new AxesViewer(scene);
+    // const axesviewer = new AxesViewer(scene);
 
     function update_texture(){
-        cyl_texture.setVector3("sphere_center", sphere.position);
-        cyl_texture.updateShaderUniforms();
-        // cyl_texture.updateTextures();
+        setTextureOptions(cyl_texture, getTextureOptions());
     }
 
     const gizmoManager = new GizmoManager(scene);
