@@ -1,0 +1,43 @@
+{
+  "animate": false,
+  "refreshrate": 0,
+  "uniforms": [
+    {
+      "type": "float",
+      "name": "cylinder_radius",
+      "value": 1.0
+    },
+    {
+      "type": "float",
+      "name": "cylinder_height",
+      "value": 5.0
+    },
+    {
+      "type": "Vector3",
+      "name": "sphere_rotation",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    {
+      "type": "Vector3",
+      "name": "projection_origin",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    {
+      "type": "Vector3",
+      "name": "sphere_center",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    }
+  ],
+  "sampler2Ds": [
+    {
+      "sample2Dname": "map",
+      "textureRelativeUrl": "map2.jpg"
+    }
+  ]
+}
