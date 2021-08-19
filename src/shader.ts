@@ -1,6 +1,7 @@
 import * as BABYLON from 'babylonjs';
-import {CustomProceduralTexture, Scene, Texture, Vector3} from "babylonjs";
+import {CustomProceduralTexture, Scene, Texture, Vector3, Color4, Quaternion} from "babylonjs";
 
+// language=GLSL
 export const shader_text = `
 #ifdef GL_ES
 precision highp float;
@@ -9,7 +10,7 @@ precision highp float;
 uniform sampler2D map;
 uniform float cylinder_radius;
 uniform float cylinder_height;
-uniform vec3 sphere_rotation;
+uniform vec4 sphere_rotation;
 uniform vec3 projection_origin;
 uniform vec3 sphere_center;
 
@@ -32,6 +33,7 @@ void main(void) {
 
  float intersection_dist_from_ray = -1.0;
 
+ // Thank you http://kylehalladay.com/blog/tutorial/math/2013/12/24/Ray-Sphere-Intersection.html
  vec3 L = sphere_center - projection_origin;
  float tc = dot(L, ray_direction); // Only allowed to be negative if projection origin is inside the sphere
  float d_squared = dot(L, L) - (tc * tc);
@@ -43,12 +45,15 @@ void main(void) {
 
  if (intersection_dist_from_ray > 0.0) {
   vec3 intersection_location_relative_to_sphere_center = proj_origin_relative_to_sphere_center + (intersection_dist_from_ray * ray_direction);
+  // Thank you, https://stackoverflow.com/a/9037454/4508007
+  vec3 temp = cross(sphere_rotation.xyz, intersection_location_relative_to_sphere_center) + sphere_rotation.w * intersection_location_relative_to_sphere_center;
+  vec3 final_intersection_location = intersection_location_relative_to_sphere_center + 2.0*cross(sphere_rotation.xyz, temp);
 
-  float proj_rads_around = atan(intersection_location_relative_to_sphere_center.z / intersection_location_relative_to_sphere_center.x);
-  if(intersection_location_relative_to_sphere_center.x < 0.0){
+  float proj_rads_around = atan(final_intersection_location.z / final_intersection_location.x);
+  if(final_intersection_location.x < 0.0){
     proj_rads_around -= pi;
   }
-  float proj_rads_up = asin(intersection_location_relative_to_sphere_center.y);
+  float proj_rads_up = asin(final_intersection_location.y);
 
   vec2 sample_from_loc = vec2(proj_rads_around / (2.0 * pi), (proj_rads_up / pi) + 0.5);
   vec3 color = texture2D(map, sample_from_loc).xyz;
@@ -67,15 +72,17 @@ void main(void) {
 export interface TextureOptions {
     cylinder_radius: number,
     cylinder_height: number,
-    sphere_rotation: Vector3,
+    sphere_rotation: Quaternion,
     projection_origin: Vector3,
     sphere_position: Vector3
 }
 
-export function setTextureOptions(texture: CustomProceduralTexture, options: TextureOptions){
+export function setTextureOptions(texture: CustomProceduralTexture, options: TextureOptions) {
     texture.setFloat("cylinder_radius", options.cylinder_radius);
     texture.setFloat("cylinder_height", options.cylinder_height);
-    texture.setVector3("sphere_rotation", options.sphere_rotation);
+    // For some reason we don't have SetVector4?
+    texture.setColor4("sphere_rotation", new Color4(options.sphere_rotation.x, options.sphere_rotation.y,
+        options.sphere_rotation.z, options.sphere_rotation.w));
     texture.setVector3("projection_origin", options.projection_origin);
     texture.setVector3("sphere_center", options.sphere_position);
 }

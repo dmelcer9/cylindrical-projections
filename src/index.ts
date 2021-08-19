@@ -12,7 +12,9 @@ import {
     StandardMaterial,
     CustomProceduralTexture,
     AxesViewer,
-    GizmoManager
+    GizmoManager,
+    AxisDragGizmo,
+    PlaneRotationGizmo, Quaternion
 } from 'babylonjs'
 import {createTexture, setTextureOptions, TextureOptions} from "./shader";
 
@@ -25,8 +27,8 @@ const cylinder_height = 5;
 
 function get_tube_path(height: number): Array<Vector3> {
     return [
-        new Vector3(0, -height/2, 0),
-        new Vector3(0, height/2, 0)
+        new Vector3(0, -height / 2, 0),
+        new Vector3(0, height / 2, 0)
     ];
 }
 
@@ -42,14 +44,15 @@ function createScene(): Scene {
 
     // var light1: HemisphericLight = new HemisphericLight("light1", new Vector3(1, 1, 0), scene);
 
-    var map_texture: Texture = new Texture("globeProjection/map2.jpg", scene);
+    var map_texture: Texture = new Texture("images/map2.jpg", scene);
     var sphere: Mesh = MeshBuilder.CreateSphere("sphere", {diameter: 2}, scene);
-    sphere.rotation.x = Math.PI;
+    sphere.rotationQuaternion = Quaternion.Zero();
     var mat = new StandardMaterial("EarthMaterial", scene);
+    map_texture.uScale = -1;
+    map_texture.vScale = -1;
     mat.emissiveTexture = map_texture;
     mat.diffuseTexture = map_texture;
     sphere.material = mat;
-
 
     const cylinder: Mesh = MeshBuilder.CreateTube("cylinder", {
         path: get_tube_path(cylinder_height),
@@ -60,10 +63,10 @@ function createScene(): Scene {
     cylinder.hasVertexAlpha = true;
     const cyl_material = new StandardMaterial("CylinderMaterial", scene);
 
-    function getTextureOptions(): TextureOptions{
+    function getTextureOptions(): TextureOptions {
         return {
             sphere_position: sphere.position,
-            sphere_rotation: sphere.rotation,
+            sphere_rotation: Quaternion.Inverse(sphere.rotationQuaternion!),
             projection_origin: Vector3.Zero(),
             cylinder_height: cylinder_height,
             cylinder_radius: cylinder_radius
@@ -81,19 +84,30 @@ function createScene(): Scene {
 
     // const axesviewer = new AxesViewer(scene);
 
-    function update_texture(){
+    function update_texture() {
         setTextureOptions(cyl_texture, getTextureOptions());
     }
 
     const gizmoManager = new GizmoManager(scene);
     gizmoManager.positionGizmoEnabled = true;
+    gizmoManager.rotationGizmoEnabled = true;
     gizmoManager.attachToMesh(sphere);
     gizmoManager.attachableMeshes = [];
 
     const pos_gizmo = gizmoManager.gizmos.positionGizmo;
-    pos_gizmo?.xGizmo.dragBehavior.onDragObservable.add(()=>update_texture());
-    pos_gizmo?.yGizmo.dragBehavior.onDragObservable.add(()=>update_texture());
-    pos_gizmo?.zGizmo.dragBehavior.onDragObservable.add(()=>update_texture());
+    const update_texture_on_drag = (axis: AxisDragGizmo | PlaneRotationGizmo) => axis.dragBehavior.onDragObservable.add(() => update_texture())
+    if (pos_gizmo) {
+        update_texture_on_drag(pos_gizmo.xGizmo)
+        update_texture_on_drag(pos_gizmo.yGizmo)
+        update_texture_on_drag(pos_gizmo.zGizmo)
+    }
+
+    const rot_gizmo = gizmoManager.gizmos.rotationGizmo;
+    if (rot_gizmo) {
+        update_texture_on_drag(rot_gizmo?.xGizmo)
+        update_texture_on_drag(rot_gizmo?.yGizmo)
+        update_texture_on_drag(rot_gizmo?.zGizmo)
+    }
 
     return scene;
 }
