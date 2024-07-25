@@ -1,5 +1,5 @@
-import * as BABYLON from 'babylonjs';
-import {CustomProceduralTexture, Scene, Texture, Vector3, Color4, Quaternion} from "babylonjs";
+import * as BABYLON from '@babylonjs/core';
+import {CustomProceduralTexture, Scene, Texture, Vector3, Color4, Quaternion} from "@babylonjs/core";
 
 // language=GLSL
 export const shader_text = `
@@ -95,3 +95,5 @@ export function createTexture(options: TextureOptions, map_texture: Texture, sce
 
     return custom_texture;
 }
+
+//export class ProjectionSurfacePluginMaterial
