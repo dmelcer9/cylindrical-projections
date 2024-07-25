@@ -49,12 +49,12 @@ void main(void) {
 
 export const shader_text2 = `
 #ifdef INFLATION
-  vec3 position_rel = ( rotation * vec4(position - sphereCenter, 1)).xyz;
+  vec3 position_rel = ( rotation * vec4(position, 1)).xyz;
   float dist_along_cylinder_extrusion_axis = dot(position_rel, cylinderExtrudeDirection);
   bool is_top = dist_along_cylinder_extrusion_axis > 0.0;
   float amount_to_move = maxHeight * inflation;
   vec3 pos_adjustment = cylinderExtrudeDirection * (is_top ? amount_to_move : -amount_to_move);
-  positionUpdated.xyz = position_rel + sphereCenter + pos_adjustment; //position_rel + pos_adjustment + sphereCenter;
+  positionUpdated.xyz = position_rel + pos_adjustment; 
 #endif
 `
 

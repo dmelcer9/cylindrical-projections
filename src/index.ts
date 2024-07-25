@@ -73,7 +73,7 @@ function createScene(): Scene {
 
     var fakeSphereForGizmo = MeshBuilder.CreateSphere("fakeSphereForGizmo");
     fakeSphereForGizmo.rotationQuaternion = Quaternion.Identity();
-    fakeSphereForGizmo.isVisible = true;
+    fakeSphereForGizmo.isVisible = false;
 
     const cylinder: Mesh = MeshBuilder.CreateTube("cylinder", {
         path: get_tube_path(cylinder_height),
