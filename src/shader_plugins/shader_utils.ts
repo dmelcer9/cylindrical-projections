@@ -1,9 +1,22 @@
 // language=glsl
 const shader_utils = `
+// Define a Ray structure
 struct Ray {
     vec3 origin;    // Starting point of the ray
     vec3 direction; // Normalized direction vector of the ray
 };
+
+// Creates a ray starting at 'origin' and passing through 'target'
+Ray createRayOriginTarget(vec3 origin, vec3 target) {
+    Ray ray;
+    ray.origin = origin;                       // Set ray origin
+    ray.direction = normalize(target - origin); // Calculate and normalize the direction vector
+    return ray;
+}
+
+vec3 followRayAlongDistance(Ray ray, float distance) {
+    return ray.origin + distance * ray.direction;
+}
 
 struct Globe {
     vec3 center;            // Center of the globe
@@ -35,6 +48,15 @@ vec3 applyQuaternion(vec3 point, vec4 quat) {
            cross(u, point) * (2.0 * s);
 }
 
+// Applies the inverse of a quaternion rotation to a 3D vector
+vec3 applyInverseQuaternion(vec3 point, vec4 quat) {
+    // Compute the conjugate of the quaternion (inverse for unit quaternions)
+    vec4 conjQuat = vec4(-quat.xyz, quat.w);
+
+    // Applying the conjugate quaternion as a rotation
+    return applyQuaternion(point, conjQuat);
+}
+
 // Function to map UV coordinates to a 3D position on the rotated sphere
 vec3 uvToSpherePosition(vec2 uv, Globe globe) {
     // Map UV coordinates to spherical angles: theta and phi
@@ -54,6 +76,27 @@ vec3 uvToSpherePosition(vec2 uv, Globe globe) {
     return rotatedPosition + globe.center;
 }
 
+// Function to map a 3D position on a rotated sphere to UV coordinates
+vec2 positionToUVOnSphere(vec3 position, Globe globe) {
+    // Offset the position by the sphere's center
+    vec3 localPosition = position - globe.center;
+
+    // Apply the inverse of the rotation quaternion to undo the rotation
+    vec3 unrotatedPosition = applyInverseQuaternion(localPosition, globe.rotationQuaternion);
+
+    // Normalize to ensure our point is on the sphere's surface
+    vec3 normalizedPosition = normalize(unrotatedPosition);
+
+    // Calculate spherical angles theta (longitude) and phi (latitude) from the position
+    float theta = atan(normalizedPosition.z, normalizedPosition.x); // Longitude
+    float phi = acos(normalizedPosition.y); // Latitude
+
+    // Map angles to normalized UV coordinates
+    float u = (theta / (2.0 * 3.1415926)) + 0.5; // Map theta from [-π, π] to [0, 1]
+    float v = phi / 3.1415926;                  // Map phi from [0, π] to [0, 1]
+
+    return vec2(u, v);
+}
 
 // Returns number of intersections between ray and sphere
 int get_ray_sphere_intersection(Ray ray, Globe globe, out float distance1, out float distance2) {
@@ -185,6 +228,7 @@ int intersectRayWithCylinder(Ray ray, Cylinder cylinder, out float distance1, ou
     // Otherwise, there are two intersection points
     return 2;
 }
+
 `
 
 export default shader_utils;

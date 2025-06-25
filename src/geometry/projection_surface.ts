@@ -33,5 +33,5 @@ export abstract class ProjectionSurface{
      * OUTPUT: vec3 position
      * NOTE: All non-input-output variables should be namespaced by ending with the id
      */
-    public abstract uvToPosition3D(): string;
+    public abstract uvToPosition3D(uvName: string, positionName: string): string;
 }

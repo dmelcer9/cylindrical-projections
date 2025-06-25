@@ -130,7 +130,7 @@ export class InflationPluginMaterial extends MaterialPluginBase {
             uniform vec3 cylinderExtrudeDirection;
             uniform float maxHeight;
             uniform vec3 sphereCenter;
-            uniform vec4 rotation;
+            uniform mat4 rotation;
             #endif
             `,
         }
