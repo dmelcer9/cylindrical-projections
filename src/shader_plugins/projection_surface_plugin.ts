@@ -26,9 +26,12 @@ export class ProjectionSurfacePlugin extends MaterialPluginBase {
         this.projection_surface = projection_surface;
     }
 
+    prepareDefines(defines: MaterialDefines, scene: Scene, mesh: AbstractMesh) {
+        defines.GENERATION = this.manager.getGeneration();
+    }
+
     public dispose(forceDisposeTextures?: boolean) {
         super.dispose(forceDisposeTextures);
-        this.manager.remove(this.manager.getIdOfSurface(this.projection_surface));
     }
 
     getClassName(): string {

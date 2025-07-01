@@ -1,10 +1,23 @@
 import {UniformBuffer} from "@babylonjs/core";
+import {GeometryManager} from "./geometry_manager";
 
-export abstract class ProjectionSurface{
-    /**
-     * An identifier that is guaranteed to be unique, for use in shader code
-     */
-    public abstract setID(id: number): void;
+export abstract class ProjectionSurface {
+    private manager: GeometryManager;
+
+    constructor(manager: GeometryManager) {
+        this.manager = manager;
+        manager.add(this);
+    }
+
+    public get id(): number {
+        return this.manager.getIdOfSurface(this);
+    }
+
+    public dispose() {
+        this.manager.remove(this.id);
+    }
+
+    public abstract recompileShader(): void;
 
     /**
      * Return shader code that gets the intersection distance from a ray origin
@@ -20,7 +33,7 @@ export abstract class ProjectionSurface{
      * All uniforms must be namespaced by ending with the id
      * This function will not be called often
      */
-    public abstract getUniforms() : {
+    public abstract getUniforms(): {
         ubo: Array<{ name: string; size?: number; type?: string; arraySize?: number }>;
         decls: string
     };

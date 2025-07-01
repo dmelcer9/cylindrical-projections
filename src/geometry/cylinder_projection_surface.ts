@@ -17,7 +17,6 @@ export class CylinderProjectionSurface extends ProjectionSurface {
     private cylinder_height: number;
     private center_position: Vector3;
     private cylinder_extrude_direction: Vector3;
-    private id: number;
 
     private mesh: Mesh;
     private material: Material;
@@ -25,8 +24,7 @@ export class CylinderProjectionSurface extends ProjectionSurface {
 
 
     constructor(manager: GeometryManager, scene: Scene, cylinder_radius: number, cylinder_height: number, center_position: Vector3, cylinder_extrude_direction: Vector3) {
-        super();
-
+        super(manager);
 
         this.cylinder_extrude_direction = cylinder_extrude_direction.normalizeToNew();
         this.cylinder_radius = cylinder_radius;
@@ -49,7 +47,10 @@ export class CylinderProjectionSurface extends ProjectionSurface {
 
         this.material = new StandardMaterial("CylinderMaterial", scene);
         this.plugin = new ProjectionSurfacePlugin(this.material, manager, this);
-        this.id = manager.add(this);
+    }
+
+    recompileShader() {
+        this.plugin.markAllDefinesAsDirty();
     }
 
     getUniformName(variable: CylinderVariable): string {
@@ -63,10 +64,6 @@ export class CylinderProjectionSurface extends ProjectionSurface {
             case CylinderVariable.Height:
                 return `cylinderHeight${this.id}`;
         }
-    }
-
-    setID(id: number) {
-        this.id = id;
     }
 
     getIntersectionDistFromRay(): string {

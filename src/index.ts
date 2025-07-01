@@ -26,6 +26,9 @@ import {createTexture, setTextureOptions, TextureOptions} from "./shader_plugins
 import {InflationPluginMaterial, shader_text2} from "./shader_plugins/vertex_shader";
 
 import * as GUI from "@babylonjs/gui";
+import {Globe} from "./geometry/globe";
+import {GeometryManager} from "./geometry/geometry_manager";
+import {CylinderProjectionSurface} from "./geometry/cylinder_projection_surface";
 
 var canvas: any = document.getElementById("renderCanvas");
 var engine: Engine = new Engine(canvas, true);
@@ -40,6 +43,7 @@ function get_tube_path(height: number): Array<Vector3> {
         new Vector3(0, height / 2, 0)
     ];
 }
+
 /*
 BABYLON.RegisterMaterialPlugin("InflationPluginMaterial", (material: Material) => {
     (material as any).inflation = new InflationPluginMaterial(material);
@@ -47,6 +51,23 @@ BABYLON.RegisterMaterialPlugin("InflationPluginMaterial", (material: Material) =
 });
 */
 
+function createScene(): Scene {
+    var scene: Scene = new Scene(engine);
+
+    var camera: ArcRotateCamera = new ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 2, 5, Vector3.Zero(), scene);
+    camera.attachControl(canvas, true);
+    camera.lowerRadiusLimit = 3;
+    camera.upperRadiusLimit = 50;
+    camera.panningSensibility = 0;
+
+    const globe: Globe = new Globe(scene);
+    const geometry_manager: GeometryManager = new GeometryManager(globe)
+    const cylinder: CylinderProjectionSurface = new CylinderProjectionSurface(geometry_manager, scene, 1, 5, Vector3.Zero(), new Vector3(0, 1, 0))
+
+    return scene;
+}
+
+/*
 function createScene(): Scene {
     var scene: Scene = new Scene(engine);
 
@@ -168,6 +189,8 @@ function createScene(): Scene {
 
     return scene;
 }
+*/
+
 
 var scene: Scene = createScene();
 
