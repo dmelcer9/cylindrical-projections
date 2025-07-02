@@ -92,8 +92,8 @@ export class GeometryManager {
         return `
             //void fragment_shader(void) {
             // vec3 position_3d = ...
-            ${this.projection_surfaces[id].uvToPosition3D("vUV", "position_3d")};
 
+            vec3 position_3d = vPosition;
             // TODO Get light source later
             vec3 projectionSource = vec3(0, 0, 0);
 
@@ -119,6 +119,7 @@ export class GeometryManager {
                 vec3 color = texture2D(map, sphereUV).xyz;
                 gl_FragColor = vec4(color, 1.0);
             }
+            //gl_FragColor.xyz = vPosition.xyz;
 
             // }`
     }

@@ -40,13 +40,22 @@ export class ProjectionSurfacePlugin extends MaterialPluginBase {
 
     getCustomCode(shaderType: string): Nullable<{ [p: string]: string }> {
         if (shaderType == "vertex") {
+            // https://github.com/BabylonJS/Babylon.js/blob/c869b5bcb55a8f0cc8e0c43949cfc2a196445daf/packages/dev/core/src/ShadersWGSL/procedural.vertex.fx#L4
             return {
-                "CUSTOM_VERTEX_DEFINITIONS": "attribute vec2 uv; varying vec2 vUV;\n",
-                "CUSTOM_VERTEX_MAIN_END": "\nvUV = uv;\n"
+                "CUSTOM_VERTEX_DEFINITIONS": `
+                // Attributes
+attribute vec2 uv;
+// Output
+varying vec2 vUV;
+varying vec3 vPosition;
+
+`,
+                "CUSTOM_VERTEX_MAIN_END": "\nvUV = uv * vec2(0.5, 0.5) + vec2(0.5, 0.5);" +
+                    "vPosition = position;\n"
             } // TODO
         } else {
             return {
-                "CUSTOM_FRAGMENT_DEFINITIONS": shader_utils + "\nvarying vec2 vUV;\n",
+                "CUSTOM_FRAGMENT_DEFINITIONS": shader_utils + "\nvarying vec2 vUV; varying vec3 vPosition;\n",
                 "CUSTOM_FRAGMENT_MAIN_END": this.manager.getFragmentShaderForID(this.manager.getIdOfSurface(this.projection_surface))
             }
         }
