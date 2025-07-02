@@ -18,6 +18,9 @@ import {
     PlaneRotationGizmo, Quaternion, IAxisDragGizmo, Material
 } from "@babylonjs/core";
 
+import {Inspector} from '@babylonjs/inspector';
+
+
 import * as BABYLON from "@babylonjs/core";
 
 import {CustomMaterial} from "@babylonjs/materials";
@@ -198,4 +201,4 @@ engine.runRenderLoop(() => {
     scene.render();
 });
 
-//scene.debugLayer.show()
+Inspector.Show(scene, {});

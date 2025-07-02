@@ -17,13 +17,13 @@ import {ProjectionSurface} from "../geometry/projection_surface";
 
 
 export class ProjectionSurfacePlugin extends MaterialPluginBase {
-    private manager: GeometryManager;
-    private projection_surface: ProjectionSurface;
 
-    constructor(material: BABYLON.Material, manager: GeometryManager, projection_surface: ProjectionSurface) {
-        super(material, "ProjectionSurfacePluginMaterial", 600, {}, true)
-        this.manager = manager;
-        this.projection_surface = projection_surface;
+    constructor(material: BABYLON.Material, private manager: GeometryManager, private projection_surface: ProjectionSurface) {
+        super(material, "ProjectionSurfacePluginMaterial", 600, {}, false, false)
+        // For silly reasons need to do this after the super call (set this.manager and this.projection_surface first)
+        this._pluginManager._addPlugin(this);
+        this._enable(true);
+        this.markAllDefinesAsDirty();
     }
 
     prepareDefines(defines: MaterialDefines, scene: Scene, mesh: AbstractMesh) {

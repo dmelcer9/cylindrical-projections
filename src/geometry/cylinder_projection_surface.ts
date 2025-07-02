@@ -1,5 +1,15 @@
 import {ProjectionSurface} from "./projection_surface";
-import {Material, Mesh, MeshBuilder, Scene, StandardMaterial, UniformBuffer, Vector3} from "@babylonjs/core";
+import {
+    Color3,
+    CustomProceduralTexture, DynamicTexture,
+    Material,
+    Mesh,
+    MeshBuilder,
+    Scene, ShaderMaterial,
+    StandardMaterial,
+    UniformBuffer,
+    Vector3
+} from "@babylonjs/core";
 import {GeometryManager} from "./geometry_manager";
 import {ProjectionSurfacePlugin} from "../shader_plugins/projection_surface_plugin";
 
@@ -19,7 +29,7 @@ export class CylinderProjectionSurface extends ProjectionSurface {
     private cylinder_extrude_direction: Vector3;
 
     private mesh: Mesh;
-    private material: Material;
+    private material: StandardMaterial;
     private plugin: ProjectionSurfacePlugin
 
 
@@ -32,7 +42,7 @@ export class CylinderProjectionSurface extends ProjectionSurface {
         this.center_position = center_position;
         this.cylinder_extrude_direction = cylinder_extrude_direction;
 
-        const cyl_extrude_direction_half_height = cylinder_extrude_direction.clone().normalizeFromLength(cylinder_height / 2);
+        const cyl_extrude_direction_half_height = cylinder_extrude_direction.normalizeToNew().scale(cylinder_height / 2);
         this.mesh = MeshBuilder.CreateTube("cylinder", {
             path: [
                 center_position.subtract(cyl_extrude_direction_half_height),
@@ -46,7 +56,10 @@ export class CylinderProjectionSurface extends ProjectionSurface {
         this.mesh.hasVertexAlpha = true;
 
         this.material = new StandardMaterial("CylinderMaterial", scene);
+        this.material.emissiveColor = Color3.Blue();
+        // this.material.emissiveTexture = this.texture;
         this.plugin = new ProjectionSurfacePlugin(this.material, manager, this);
+        this.mesh.material = this.material;
     }
 
     recompileShader() {
