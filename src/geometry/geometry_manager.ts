@@ -26,7 +26,7 @@ export class GeometryManager {
         inner_uniforms.push(this.globe.getUniforms());
         return {
             ubo: inner_uniforms.flatMap(e => e.ubo),
-            decls: inner_uniforms.join("\n")
+            decls: inner_uniforms.flatMap(e => e.decls).join("\n")
         }
     }
 
@@ -119,6 +119,7 @@ export class GeometryManager {
                 vec3 color = texture2D(map, sphereUV).xyz;
                 gl_FragColor = vec4(color, 1.0);
             }
+
             // }`
     }
 }

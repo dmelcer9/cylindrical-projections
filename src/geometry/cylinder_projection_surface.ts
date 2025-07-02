@@ -125,7 +125,7 @@ uniform float ${this.getUniformName(CylinderVariable.Height)};
     uvToPosition3D(uvName: string, positionName: string): string {
         // language=glsl
         return `
-            float radians_around_${this.id} = -(${uvName}.x * 2.0 * pi);
+            float radians_around_${this.id} = -(${uvName}.x * 2.0 * PI);
             vec3 ${positionName} = vec3(sin(radians_around_${this.id}) * ${this.getUniformName(CylinderVariable.Radius)},
             (${uvName}.y * ${this.getUniformName(CylinderVariable.Height)}) - (${this.getUniformName(CylinderVariable.Height)}/2.0),
             -cos(radians_around_${this.id}) * ${this.getUniformName(CylinderVariable.Radius)})
