@@ -1,4 +1,4 @@
-import {UniformBuffer} from "@babylonjs/core";
+import {ShaderMaterial, UniformBuffer} from "@babylonjs/core";
 import {GeometryManager} from "./geometry_manager";
 
 export abstract class ProjectionSurface {
@@ -39,6 +39,10 @@ export abstract class ProjectionSurface {
     };
 
     public abstract updateUniformBuffer(uniformBuffer: UniformBuffer): void;
+
+    public abstract setPropertiesOfShaderMaterial(shaderMaterial: ShaderMaterial): void;
+
+    public abstract getShaderMaterial(): ShaderMaterial;
 
     /**
      * Return shader code that converts a uv coordinate to a 3D position

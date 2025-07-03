@@ -82,7 +82,7 @@ const shader_utils = `
         vec3 localPosition = position - globe.center;
 
         // Apply the inverse of the rotation quaternion to undo the rotation
-        vec3 unrotatedPosition = applyInverseQuaternion(localPosition, globe.rotationQuaternion);
+        vec3 unrotatedPosition = applyQuaternion(localPosition, globe.rotationQuaternion);
 
         // Normalize to ensure our point is on the sphere's surface
         vec3 normalizedPosition = normalize(unrotatedPosition);
@@ -92,10 +92,10 @@ const shader_utils = `
         float phi = acos(normalizedPosition.y);// Latitude
 
         // Map angles to normalized UV coordinates
-        float u = (theta / (2.0 * 3.1415926)) + 0.5;// Map theta from [-π, π] to [0, 1]
-        float v = phi / 3.1415926;// Map phi from [0, π] to [0, 1]
+        float u = (theta / (2.0 * PI)) + 0.5;// Map theta from [-π, π] to [0, 1]
+        float v = phi / PI;// Map phi from [0, π] to [0, 1]
 
-        return vec2(1.0-u, 1.0-v);
+        return vec2(0.5+u, -v);
     }
 
     // Returns number of intersections between ray and sphere

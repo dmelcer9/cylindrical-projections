@@ -3,20 +3,22 @@ import {
     Mesh,
     MeshBuilder,
     Quaternion,
-    Scene,
+    Scene, ShaderMaterial,
     StandardMaterial,
     Texture,
-    UniformBuffer
+    UniformBuffer, Vector4
 } from "@babylonjs/core";
 import {InflationPluginMaterial} from "../shader_plugins/vertex_shader";
+import {GeometryManager} from "./geometry_manager";
 
 export class Globe {
     private sphere: Mesh;
     private fakeSphereForGizmo: Mesh;
     private gizmoManager: GizmoManager;
     private map_texture: Texture;
+    private manager: GeometryManager;
 
-    constructor(scene: Scene) {
+    constructor(scene: Scene, manager: GeometryManager) {
         const map_texture: Texture = new Texture("images/map2.jpg", scene);
         this.sphere = MeshBuilder.CreateSphere("sphere", {diameter: 2}, scene);
         this.sphere.rotationQuaternion = Quaternion.Identity();
@@ -56,11 +58,14 @@ export class Globe {
             update_texture_on_drag(rot_gizmo?.yGizmo)
             update_texture_on_drag(rot_gizmo?.zGizmo)
         }
+        this.manager = manager;
     }
 
     update_texture() {
         this.sphere.position = this.fakeSphereForGizmo.position;
         this.sphere.rotationQuaternion = this.fakeSphereForGizmo.rotationQuaternion ?? Quaternion.Identity();
+        this.manager.updateUniforms();
+
     }
 
     getUniforms(): { ubo: Array<{ name: string; size?: number; type?: string; arraySize?: number }>; decls: string } {
@@ -94,5 +99,15 @@ export class Globe {
         uniformBuffer.updateFloat("globe_radius", 1.0);
         uniformBuffer.updateVector4("globe_rotation_quaternion", sphere_rotation);
         uniformBuffer.setTexture("map", this.map_texture);
+    }
+
+    public setPropertiesOfShaderMaterial(material: ShaderMaterial) {
+        const sphere_position = this.sphere.position;
+        const sphere_rotation = Quaternion.Inverse(this.fakeSphereForGizmo.rotationQuaternion ?? Quaternion.Identity())
+
+        material.setTexture("map", this.map_texture);
+        material.setVector3("globe_position", sphere_position);
+        material.setFloat("globe_radius", 1.0);
+        material.setQuaternion("globe_rotation_quaternion", sphere_rotation);
     }
 }

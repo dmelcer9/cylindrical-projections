@@ -1,15 +1,17 @@
 import {ProjectionSurface} from "./projection_surface";
-import {UniformBuffer} from "@babylonjs/core";
+import {Scene, UniformBuffer} from "@babylonjs/core";
 import {Globe} from "./globe";
+import shader_utils from "../shader_plugins/shader_utils";
 
 export class GeometryManager {
     private projection_surfaces: ProjectionSurface[];
     private generation: number;
     private globe: Globe;
 
-    public constructor(globe: Globe) {
+    public constructor(scene: Scene) {
+
+        this.globe = new Globe(scene, this);
         this.projection_surfaces = []
-        this.globe = globe;
         this.generation = 0;
     }
 
@@ -47,6 +49,7 @@ export class GeometryManager {
             this.projection_surfaces.splice(id, 1);
         }
         this.generation++;
+        this.recompileShaders();
     }
 
     public add(projection_surface: ProjectionSurface): number {
@@ -59,6 +62,7 @@ export class GeometryManager {
         for (const projection_surface of this.projection_surfaces) {
             projection_surface.recompileShader();
         }
+        this.updateUniforms();
     }
 
     /**
@@ -87,40 +91,97 @@ export class GeometryManager {
         return output;
     }
 
+    public getCommonBlock(): string {
+        const {decls} = this.get_uniforms();
+        return `
+        ${decls}
+        varying vec3 vPositionW;
+        const float PI = 3.1415926535897932384626433832795;
+        ${shader_utils}
+        `
+    }
+
+    public updateUniforms() {
+        const all_shaders = this.projection_surfaces.map(e => e.getShaderMaterial());
+        for (const shader of all_shaders) {
+            for (const surface of this.projection_surfaces) {
+                surface.setPropertiesOfShaderMaterial(shader);
+            }
+            this.globe.setPropertiesOfShaderMaterial(shader);
+        }
+    }
+
+
     public getFragmentShaderForID(id: number): string {
+        //                    ${this.projection_surfaces[id].uvToPosition3D("vPositionUV", "position_3d")};
         // language=glsl
         return `
-            //void fragment_shader(void) {
-            // vec3 position_3d = ...
+            ${this.getCommonBlock()};
 
-            vec3 position_3d = vPosition;
-            // TODO Get light source later
-            vec3 projectionSource = vec3(0, 0, 0);
+            void main() {
+                // vec3 position_3d = ...
 
-            Ray ray = createRayOriginTarget(projectionSource, position_3d);
+                vec3 position_3d = vPositionW;
+                //vec2 vPositionUV = vPositionUVW.xy;
 
-            // TODO Check all other intersections later
-            bool is_first_intersection = true;
 
-            Globe globe = getGlobe();
+                // TODO Get light source later
+                vec3 projectionSource = vec3(0, 0, 0);
 
-            float dist1;
-            float dist2;
+                Ray ray = createRayOriginTarget(projectionSource, position_3d);
 
-            int num_intersections = get_ray_sphere_intersection(ray, globe, dist1, dist2);
+                // TODO Check all other intersections later
+                bool is_first_intersection = true;
 
-            if (num_intersections == 0 || num_intersections == 1){
-                // Misses or tangent to sphere
-                gl_FragColor = vec4(0, 0, 0, 0.5);
-            } else {
-                float max_dist_ray_to_sphere = max(dist1, dist2);
-                vec3 pointOfSphereIntersection = followRayAlongDistance(ray, max_dist_ray_to_sphere);
-                vec2 sphereUV = positionToUVOnSphere(pointOfSphereIntersection, globe);
-                vec3 color = texture2D(map, sphereUV).xyz;
-                gl_FragColor = vec4(color, 1.0);
-            }
-            //gl_FragColor.xyz = vPosition.xyz;
+                Globe globe = getGlobe();
 
-            // }`
+                float dist1;
+                float dist2;
+
+                int num_intersections = get_ray_sphere_intersection(ray, globe, dist1, dist2);
+
+                if (num_intersections == 0 || num_intersections == 1){
+                    // Misses or tangent to sphere
+                    gl_FragColor = vec4(0, 0, 0, 0.5);
+                } else {
+                    float max_dist_ray_to_sphere = max(dist1, dist2);
+                    vec3 pointOfSphereIntersection = followRayAlongDistance(ray, max_dist_ray_to_sphere);
+                    vec2 sphereUV = positionToUVOnSphere(pointOfSphereIntersection, globe);
+                    vec3 color = texture2D(map, sphereUV).xyz;
+                    //color = texture2D(map, pointOfSphereIntersection.xy).xyz;
+                    //gl_FragColor = vec4(sphereUV, color.z, 1.0);
+                    //gl_FragColor = vec4(pointOfSphereIntersection, 1.0);
+                    gl_FragColor = vec4(color, 0.5);
+                }
+                //gl_FragColor = vec4(globe.center, 1.0);
+                //gl_FragColor.xyz = applyQuaternion(vPositionW.xyz, globe.rotationQuaternion);
+
+            }`
+    }
+
+    public getVertexShaderForID(id: number): string {
+        return `
+        // Attributes
+attribute vec2 position;
+
+// Output
+varying vec2 vPosition;
+varying vec2 vUV;
+
+const vec2 madd = vec2(0.5, 0.5);
+
+
+#define CUSTOM_VERTEX_DEFINITIONS
+
+void main(void) {
+
+#define CUSTOM_VERTEX_MAIN_BEGIN
+
+vPosition = position;
+vUV = position * madd + madd;
+//gl_Position = vec4(position, 0.0, 1.0);
+
+#define CUSTOM_VERTEX_MAIN_END
+}`
     }
 }

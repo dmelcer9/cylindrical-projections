@@ -55,7 +55,7 @@ varying vec3 vPosition;
             } // TODO
         } else {
             return {
-                "CUSTOM_FRAGMENT_DEFINITIONS": shader_utils + "\nvarying vec2 vUV; varying vec3 vPosition;\n",
+                "CUSTOM_FRAGMENT_DEFINITIONS": shader_utils + "\nvarying vec2 vUV; varying vec3 vPosition;asdf\n",
                 "CUSTOM_FRAGMENT_MAIN_END": this.manager.getFragmentShaderForID(this.manager.getIdOfSurface(this.projection_surface))
             }
         }

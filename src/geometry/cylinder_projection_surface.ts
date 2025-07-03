@@ -1,7 +1,7 @@
 import {ProjectionSurface} from "./projection_surface";
 import {
     Color3,
-    CustomProceduralTexture, DynamicTexture,
+    CustomProceduralTexture, DynamicTexture, Engine,
     Material,
     Mesh,
     MeshBuilder,
@@ -12,6 +12,7 @@ import {
 } from "@babylonjs/core";
 import {GeometryManager} from "./geometry_manager";
 import {ProjectionSurfacePlugin} from "../shader_plugins/projection_surface_plugin";
+import {defaultVertexShader} from "@babylonjs/core/Shaders/default.vertex";
 
 enum CylinderVariable {
     Center,
@@ -29,8 +30,9 @@ export class CylinderProjectionSurface extends ProjectionSurface {
     private cylinder_extrude_direction: Vector3;
 
     private mesh: Mesh;
-    private material: StandardMaterial;
-    private plugin: ProjectionSurfacePlugin
+    private material: ShaderMaterial;
+
+    //private plugin: ProjectionSurfacePlugin
 
 
     constructor(manager: GeometryManager, scene: Scene, cylinder_radius: number, cylinder_height: number, center_position: Vector3, cylinder_extrude_direction: Vector3) {
@@ -53,17 +55,34 @@ export class CylinderProjectionSurface extends ProjectionSurface {
             sideOrientation: Mesh.DOUBLESIDE
         }, scene);
 
-        this.mesh.hasVertexAlpha = true;
+        //this.mesh.hasVertexAlpha = true;
+        //this.mesh.visibility = 0.5;
 
-        this.material = new StandardMaterial("CylinderMaterial", scene);
-        this.material.emissiveColor = Color3.Blue();
+        //this.material = new StandardMaterial("CylinderMaterial", scene);
+        // this.material.emissiveColor = Color3.Blue();
         // this.material.emissiveTexture = this.texture;
-        this.plugin = new ProjectionSurfacePlugin(this.material, manager, this);
+        //this.plugin = new ProjectionSurfacePlugin(this.material, manager, this);
+
+        this.material = new ShaderMaterial("Shadermat", scene, {
+            fragmentSource: manager.getFragmentShaderForID(this.id),
+            vertexSource: defaultVertexShader.shader
+        }, {
+            attributes: ["position", "normal", "uv"],
+            uniforms: ["world", "worldView", "worldViewProjection", "view", "projection", "time", "direction", "viewProjection"],
+            samplers: ["map"],
+            needAlphaTesting: true,
+            needAlphaBlending: true,
+        })
+        this.material.backFaceCulling = true;
+        this.material.needDepthPrePass = true;
+        this.material.alphaMode = Engine.ALPHA_COMBINE;
+        
         this.mesh.material = this.material;
+        manager.updateUniforms();
     }
 
     recompileShader() {
-        this.plugin.markAllDefinesAsDirty();
+        //this.plugin.markAllDefinesAsDirty();
     }
 
     getUniformName(variable: CylinderVariable): string {
@@ -115,11 +134,22 @@ uniform float ${this.getUniformName(CylinderVariable.Height)};
         uniformBuffer.updateFloat(this.getUniformName(CylinderVariable.Height), this.cylinder_height);
     }
 
+    setPropertiesOfShaderMaterial(shaderMaterial: ShaderMaterial) {
+        shaderMaterial.setFloat(this.getUniformName(CylinderVariable.Radius), this.cylinder_radius);
+        shaderMaterial.setFloat(this.getUniformName(CylinderVariable.Height), this.cylinder_height);
+        shaderMaterial.setVector3(this.getUniformName(CylinderVariable.Center), this.center_position);
+        shaderMaterial.setVector3(this.getUniformName(CylinderVariable.Axis), this.cylinder_extrude_direction);
+    }
+
     getCylinder(): string {
         const {CylinderVariable} = CylinderProjectionSurface;
         return `Cylinder(${this.getUniformName(CylinderVariable.Center)},
                          ${this.getUniformName(CylinderVariable.Axis)},
                          ${this.getUniformName(CylinderVariable.Radius)})`
+    }
+
+    getShaderMaterial(): ShaderMaterial {
+        return this.material;
     }
 
     uvToPosition3D(uvName: string, positionName: string): string {

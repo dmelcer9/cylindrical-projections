@@ -63,8 +63,7 @@ function createScene(): Scene {
     camera.upperRadiusLimit = 50;
     camera.panningSensibility = 0;
 
-    const globe: Globe = new Globe(scene);
-    const geometry_manager: GeometryManager = new GeometryManager(globe)
+    const geometry_manager: GeometryManager = new GeometryManager(scene);
     const cylinder: CylinderProjectionSurface = new CylinderProjectionSurface(geometry_manager, scene, 1, 5, Vector3.Zero(), new Vector3(0, 1, 0))
 
     return scene;
