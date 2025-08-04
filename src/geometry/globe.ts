@@ -41,6 +41,8 @@ export class Globe {
         this.gizmoManager = new GizmoManager(scene);
         this.gizmoManager.attachToMesh(this.fakeSphereForGizmo);
         this.gizmoManager.attachableMeshes = [];
+        this.gizmoManager.positionGizmoEnabled = true;
+        this.gizmoManager.rotationGizmoEnabled = true;
 
         const pos_gizmo = this.gizmoManager.gizmos.positionGizmo;
         const update_texture_on_drag = (axis: IAxisDragGizmo) => axis.dragBehavior.onDragObservable.add(() => this.update_texture())
@@ -57,6 +59,7 @@ export class Globe {
             update_texture_on_drag(rot_gizmo?.zGizmo)
         }
         this.manager = manager;
+        this.setGizmoEnabled(false);
     }
 
     setGizmoEnabled(enabled: boolean) {

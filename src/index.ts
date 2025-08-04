@@ -69,6 +69,17 @@ function createScene(): Scene {
 
     geometry_manager.light_source.setGizmoEnabled(true);
 
+    window.addEventListener("keydown", (event: KeyboardEvent) => {
+        if (event.key === "g") {
+            geometry_manager.globe.setGizmoEnabled(true);
+            geometry_manager.light_source.setGizmoEnabled(false);
+        } else if (event.key === "l") {
+            geometry_manager.globe.setGizmoEnabled(false);
+            geometry_manager.light_source.setGizmoEnabled(true);
+        }
+    });
+
+
     return scene;
 }
 
