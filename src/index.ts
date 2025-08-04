@@ -67,6 +67,8 @@ function createScene(): Scene {
     const cylinder: CylinderProjectionSurface = new CylinderProjectionSurface(geometry_manager, scene, 1, 5, Vector3.Zero(), new Vector3(0, 1, 0))
     scene.useOrderIndependentTransparency = true;
 
+    geometry_manager.light_source.setGizmoEnabled(true);
+
     return scene;
 }
 

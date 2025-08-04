@@ -1,4 +1,4 @@
-import {ShaderMaterial} from "@babylonjs/core";
+import {ShaderMaterial, UniformBuffer} from "@babylonjs/core";
 
 export abstract class LightSource {
     public abstract getShaderCode(): string;
@@ -8,7 +8,9 @@ export abstract class LightSource {
         decls: string
     };
 
-    public abstract updateUniformBuffer(uniformBuffer: WebGLBuffer): void;
+    public abstract updateUniformBuffer(uniformBuffer: UniformBuffer): void;
 
     public abstract setPropertiesOfShaderMaterial(shaderMaterial: ShaderMaterial): void;
+
+    public abstract setGizmoEnabled(enabled: boolean): void ;
 }

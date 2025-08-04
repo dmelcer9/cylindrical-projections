@@ -2,17 +2,20 @@ import {ProjectionSurface} from "./projection_surface";
 import {Scene, UniformBuffer} from "@babylonjs/core";
 import {Globe} from "./globe";
 import shader_utils from "../shader_plugins/shader_utils";
+import {LightSource} from "./light_source/light_source";
+import {PointLightSource} from "./light_source/point_light_source";
 
 export class GeometryManager {
     private projection_surfaces: ProjectionSurface[];
     private generation: number;
-    private globe: Globe;
+    public globe: Globe;
+    public light_source: LightSource;
 
     public constructor(scene: Scene) {
-
         this.globe = new Globe(scene, this);
         this.projection_surfaces = []
         this.generation = 0;
+        this.light_source = new PointLightSource(scene, this);
     }
 
     public getGeneration(): number {
@@ -26,6 +29,7 @@ export class GeometryManager {
     } {
         const inner_uniforms = this.projection_surfaces.map(e => e.getUniforms());
         inner_uniforms.push(this.globe.getUniforms());
+        inner_uniforms.push(this.light_source.getUniforms());
         return {
             ubo: inner_uniforms.flatMap(e => e.ubo),
             decls: inner_uniforms.flatMap(e => e.decls).join("\n")
@@ -37,6 +41,7 @@ export class GeometryManager {
             surface.updateUniformBuffer(uniformBuffer);
         }
         this.globe.updateUniformBuffer(uniformBuffer);
+        this.light_source.updateUniformBuffer(uniformBuffer);
 
     }
 
@@ -108,6 +113,7 @@ export class GeometryManager {
                 surface.setPropertiesOfShaderMaterial(shader);
             }
             this.globe.setPropertiesOfShaderMaterial(shader);
+            this.light_source.setPropertiesOfShaderMaterial(shader);
         }
     }
 
@@ -117,8 +123,10 @@ export class GeometryManager {
         // language=glsl
         return `
             ${this.getCommonBlock()};
-            #include<oitDeclaration>
 
+            ${this.light_source.getShaderCode()};
+
+            #include<oitDeclaration>
 
             void main() {
                 // vec3 position_3d = ...
@@ -128,7 +136,7 @@ export class GeometryManager {
 
 
                 // TODO Get light source later
-                vec3 projectionSource = vec3(0, 0, 0);
+                vec3 projectionSource = getLightSource(position_3d);
 
                 Ray ray = createRayOriginTarget(projectionSource, position_3d);
 
