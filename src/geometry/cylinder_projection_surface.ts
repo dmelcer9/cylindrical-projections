@@ -69,16 +69,20 @@ export class CylinderProjectionSurface extends ProjectionSurface {
         }, {
             attributes: ["position", "normal", "uv"],
             uniforms: ["world", "worldView", "worldViewProjection", "view", "projection", "time", "direction", "viewProjection"],
-            samplers: ["map"],
-            needAlphaTesting: true,
+            samplers: ["map", "oitDepthSampler", "oitFrontColorSampler"],
+            defines: ["ORDER_INDEPENDENT_TRANSPARENCY"],
+            //needAlphaTesting: true,
             needAlphaBlending: true,
-        })
-        this.material.backFaceCulling = true;
-        this.material.needDepthPrePass = true;
-        this.material.alphaMode = Engine.ALPHA_COMBINE;
-        
+        }, false)
+        //this.material.backFaceCulling = true;
+        // this.material.needDepthPrePass = true;
+        //this.material.alphaMode = Engine.ALPHA_COMBINE;
+
         this.mesh.material = this.material;
         manager.updateUniforms();
+        this.material.onBindObservable.add(() => {
+            scene.depthPeelingRenderer?.bind(this.material.getEffect())
+        })
     }
 
     recompileShader() {

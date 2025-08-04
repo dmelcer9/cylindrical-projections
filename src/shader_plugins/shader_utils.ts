@@ -1,5 +1,6 @@
 // language=glsl
 const shader_utils = `
+
     // Define a Ray structure
     struct Ray {
         vec3 origin;// Starting point of the ray

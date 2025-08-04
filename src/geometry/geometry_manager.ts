@@ -117,6 +117,8 @@ export class GeometryManager {
         // language=glsl
         return `
             ${this.getCommonBlock()};
+            #include<oitDeclaration>
+
 
             void main() {
                 // vec3 position_3d = ...
@@ -140,22 +142,38 @@ export class GeometryManager {
 
                 int num_intersections = get_ray_sphere_intersection(ray, globe, dist1, dist2);
 
+                vec4 color = vec4(0, 0, 0, 0.5);
+
                 if (num_intersections == 0 || num_intersections == 1){
                     // Misses or tangent to sphere
-                    gl_FragColor = vec4(0, 0, 0, 0.5);
+                    color = vec4(0, 0, 0, 0.5);
                 } else {
                     float max_dist_ray_to_sphere = max(dist1, dist2);
                     vec3 pointOfSphereIntersection = followRayAlongDistance(ray, max_dist_ray_to_sphere);
                     vec2 sphereUV = positionToUVOnSphere(pointOfSphereIntersection, globe);
-                    vec3 color = texture2D(map, sphereUV).xyz;
+                    vec3 texture_color = texture2D(map, sphereUV).xyz;
                     //color = texture2D(map, pointOfSphereIntersection.xy).xyz;
                     //gl_FragColor = vec4(sphereUV, color.z, 1.0);
                     //gl_FragColor = vec4(pointOfSphereIntersection, 1.0);
-                    gl_FragColor = vec4(color, 0.5);
+                    if (max_dist_ray_to_sphere > 0.0){
+                        color = vec4(texture_color, 0.5);
+                    } else {
+                        color = vec4(0.0, 0.0, 0.0, 0.5);
+                    }
                 }
                 //gl_FragColor = vec4(globe.center, 1.0);
                 //gl_FragColor.xyz = applyQuaternion(vPositionW.xyz, globe.rotationQuaternion);
 
+                #include<oitFragment>
+
+                #if ORDER_INDEPENDENT_TRANSPARENCY
+                if (fragDepth == nearestDepth) {
+                    frontColor.rgb += color.rgb * color.a * alphaMultiplier;
+                    frontColor.a = 1.0 - alphaMultiplier * (1.0 - color.a);
+                } else {
+                    backColor += color;
+                }
+                #endif
             }`
     }
 
